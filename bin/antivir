@@ -1,0 +1,29 @@
+#!/bin/bash
+
+CLAMDIR=.clamscan
+TIMEFILE=$CLAMDIR/time
+day=$(date +%d)
+month=$(date +%m)
+year=$(date +%Y)
+epoch=$(date +%s)
+curlogdir=$CLAMDIR/logs/$year/$month/$day/
+curlogfile=$curlogdir/clamav-$epoch.log
+
+if [ ! -d $CLAMDIR ]; then
+    mkdir -p .clamscan/{logs,infected}
+fi
+if [ ! -d $curlogdir ]; then
+    mkdir -p $curlogdir
+fi
+
+newer=""
+if [ -f $TIMEFILE ]; then
+    newer="-newer $TIMEFILE"
+fi
+
+touch $TIMEFILE.new
+find . -type f $newer | grep -v "clamscan" | clamdscan --move=$CLAMDIR/infected -m --fdpass -f /dev/stdin -l $curlogfile
+gzip -f $curlogfile
+
+ln -f $TIMEFILE.new $TIMEFILE
+rm $TIMEFILE.new
