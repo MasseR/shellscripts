@@ -1,0 +1,120 @@
+#!/bin/bash
+# Frontend for hyperestraier full-text searcher and indexer.
+
+# Configuration
+max_size="4M"
+casket_name=".estidx"
+
+
+# State variables
+dir=$PWD
+index="no"
+purge="no"
+optimize="no"
+extract_keys="no"
+raw="no"
+
+while getopts "iod:pkrh" flags
+do
+    case $flags in
+        "d") # Custom directory
+            dir=$OPTARG
+            ;;
+        "i") # Index
+            index="yes"
+            ;;
+        "p") # Purge removed
+            purge="yes"
+            ;;
+        "o") # Optimize
+            optimize="yes"
+            ;;
+        "k") # Extract keys
+            extract_keys="yes"
+            ;;
+        "r") # Raw query
+            raw="yes"
+            ;;
+        "h") # Help text
+            echo "$(basename $0) [args] [query ...]"
+            echo "Index and query a directory."
+            echo -e '\t-i\t\tIndex'
+            echo -e '\t-d dir\t\tAct in directory [dir]'
+            echo -e '\t-p\t\tPurge database'
+            echo -e '\t-k\t\tExtract keys'
+            echo -e '\t-o\t\tOptimize index'
+            echo -e '\t-r\t\tQuery with a raw string'
+            echo -e '\t-h\t\tThis help text'
+    esac
+done
+
+casket=$dir/$casket_name
+
+# Index if the user has requested
+if [ $index == "yes" ]
+then
+    echo "Indexing"
+    findnew=""
+    if [ -d $casket ]; then
+        findnew="-newer $casket/_fwm"
+    fi
+    find $dir $findnew -type f -size "-$max_size" \
+        | estcmd gather \
+        -fx '.pdf' 'H@/usr/share/hyperestraier/filter/estfxpdftohtml' \
+        -fx '.doc,.xls,.ppt' 'H@/usr/share/hyperestraier/filter/estfxmsotohtml' \
+        -fx '.odt' "H@$HOME/bin/hodt2txt.sh" \
+        -fx '.wiki,.tex,.lhs,.markdown' "H@$HOME/bin/txt22txt.sh" \
+        -cl -sd -cm -bc $casket -
+fi
+
+# Purge if user has requested it
+if [ $purge == "yes" ]
+then
+    echo "Purging"
+    estcmd purge $casket
+fi
+
+# Optimize if user has requested it
+if [ $optimize == "yes" ]
+then
+    echo "Optimizing"
+    estcmd optimize $casket
+fi
+
+# Extract keys if user has requested it
+if [ $extract_keys == "yes" ]
+then
+    echo "Extracting keys"
+    estcmd extkeys $casket
+fi
+
+# Build the query string
+
+shift $((OPTIND - 1))
+
+query=""
+
+if [ $raw == "no" ]
+then
+    first="yes"
+
+    while [ "$1" != "" ]
+    do
+        if [ $first != "yes" ]
+        then
+            query="$query OR"
+        fi
+        first=false
+        str=$(echo "$1" | sed "s/\s\+/ AND /g")
+        query="$query $str"
+        shift
+    done
+else
+    query="$@"
+fi
+
+if [ "$query" != "" ]
+then
+    echo "Searching for \"$query\""
+    estcmd search -vh $casket "$query"
+fi
