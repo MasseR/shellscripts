@@ -1,5 +1,6 @@
 #!/bin/bash
 # Frontend for hyperestraier full-text searcher and indexer.
+# For usage, see `search -h`
 
 # Configuration
 max_size="4M"
