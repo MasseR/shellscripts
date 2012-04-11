@@ -38,9 +38,13 @@ while read line; do
     findroots="$findroots $line"
 done < $dirs
 
-while getopts "iod:pkrh" flags
+while getopts "liod:pkrh" flags
 do
     case $flags in
+        "l") # List indexable directories
+            echo "Indexing the following directories:"
+            cat $dirs
+            ;;
         "d") # Custom directory
             dir=$OPTARG
             ;;
@@ -62,6 +66,7 @@ do
         "h") # Help text
             echo "$(basename $0) [args] [query ...]"
             echo "Index and query a directory."
+            echo -e '\t-l\t\tList indexable directories'
             echo -e '\t-i\t\tIndex'
             echo -e '\t-d dir\t\tAct in directory [dir]'
             echo -e '\t-p\t\tPurge database'
