@@ -7,12 +7,36 @@ casket_name=".estidx"
 
 
 # State variables
+datadir=$HOME/.local/share/search
+confdir=$HOME/.config/search
+dirs=$confdir/dirs
+casket=$datadir/index
 dir=$PWD
+findroots=""
 index="no"
 purge="no"
 optimize="no"
 extract_keys="no"
 raw="no"
+
+# If datadir does not exist, create it
+if [ ! -d $datadir ]; then
+    mkdir -p $datadir
+fi
+
+# If confdir does not exist, create it
+if [ ! -d $confdir ]; then
+    mkdir -p $confdir
+fi
+
+# If search directory listings not found, create a default
+if [ ! -f $dirs ]; then
+    echo $HOME > $dirs
+fi
+
+while read line; do
+    findroots="$findroots $line"
+done < $dirs
 
 while getopts "iod:pkrh" flags
 do
@@ -48,8 +72,6 @@ do
     esac
 done
 
-casket=$dir/$casket_name
-
 # Index if the user has requested
 if [ $index == "yes" ]
 then
@@ -58,7 +80,7 @@ then
     if [ -d $casket ]; then
         findnew="-newer $casket/_fwm"
     fi
-    find $dir $findnew -type f -size "-$max_size" \
+    find $findroots $findnew -type f -size "-$max_size" \
         | estcmd gather \
         -fx '.pdf' 'H@/usr/share/hyperestraier/filter/estfxpdftohtml' \
         -fx '.doc,.xls,.ppt' 'H@/usr/share/hyperestraier/filter/estfxmsotohtml' \
