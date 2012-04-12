@@ -1,4 +1,12 @@
 #!/bin/bash
+# This is UNUSABLE as is. The indexing is too slow without the -newer flag, but
+# with it, it skips new files. The thing is that mutt preservers the mtime when
+# it moves the mails from new to cur, which leads us to two possibilities. If
+# we scan the new directory, we get the files, but as mutt moves them from new
+# to cur, they are not rescanned, and the next purge removes them entirely. If
+# we don't scan the new directory, we still update the mtime of the index,
+# which we use for checking new files. This results to a situation where the
+# index file is newer than those files in the cur directories.
 
 MAILDIR=$HOME/Mail
 SEARCHDIR=$MAILDIR/Search
