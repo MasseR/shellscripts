@@ -16,13 +16,13 @@ do
             if [ -d $CASKET ]; then
                 find_new="-newer $CASKET/_fwm"
             fi
-            find $MAILDIR -type f $find_new | grep -v "Search" | egrep 'cur' | estcmd gather -bc -cl -fm -cm $CASKET -
+            find $MAILDIR -type f -path '*/cur/*' $find_new | grep -v "Search" | egrep 'cur' | estcmd gather -bc -cl -fm -cm $CASKET -
             ;;
         "a") # Index all
-            find $MAILDIR -type f | grep -v "Search" | egrep 'cur' | estcmd gather -bc -cl -fm -cm $CASKET -
+            find $MAILDIR -type f -path '*/cur/*' | grep -v "Search" | egrep 'cur' | estcmd gather -bc -cl -fm -cm $CASKET -
             ;;
         "c") # Create new
-            find $MAILDIR -type f | egrep 'cur' | estcmd gather -bc -tr -fm $CASKET -
+            find $MAILDIR -type f -path '*/cur/*' | egrep 'cur' | estcmd gather -bc -tr -fm $CASKET -
             ;;
         "p") # Purge
             estcmd purge $CASKET
