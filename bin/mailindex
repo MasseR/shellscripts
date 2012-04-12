@@ -1,0 +1,71 @@
+#!/bin/bash
+
+MAILDIR=$HOME/Mail
+SEARCHDIR=$MAILDIR/Search
+CASKET=$HOME/Mail/casket
+
+search="no"
+mutt="no"
+
+while getopts "iacpeos:mh" flags
+do
+    case $flags in
+        "i") # Index
+            # For initial indexing, remove the -mtime part
+            find_new=""
+            if [ -d $CASKET ]; then
+                find_new="-newer $CASKET/_fwm"
+            fi
+            find $MAILDIR -type f $find_new | grep -v "Search" | egrep 'cur' | estcmd gather -bc -cl -fm -cm $CASKET -
+            ;;
+        "a") # Index all
+            find $MAILDIR -type f | grep -v "Search" | egrep 'cur' | estcmd gather -bc -cl -fm -cm $CASKET -
+            ;;
+        "c") # Create new
+            find $MAILDIR -type f | egrep 'cur' | estcmd gather -bc -tr -fm $CASKET -
+            ;;
+        "p") # Purge
+            estcmd purge $CASKET
+            ;;
+        "e") # Extract keys
+            estcmd extkeys $CASKET
+            ;;
+        "o") # Optimize
+            estcmd optimize $CASKET
+            ;;
+        "s") # Search
+            search=$OPTARG
+            ;;
+        "m") # Mutt mode
+            mutt="yes"
+            ;;
+        "h")
+            echo "mailindex [options]"
+            echo -e "\t-h\t\tThis help text"
+            echo -e "\t-c\t\tCreate a new index"
+            echo -e "\t-i\t\tIndex mail"
+            echo -e "\t-p\t\tPurge index"
+            echo -e "\t-o\t\tOptimize index"
+            echo -e "\t-e\t\tExtract keys"
+            echo -e "\t-s [arg]\tSearch"
+            echo -e "\t-m\t\tMutt mode"
+    esac
+
+done
+
+if [ "$search" != "no" ]
+then
+    if [ $mutt == "yes" ]
+    then
+        rm $SEARCHDIR/cur/*
+        for file in $(estcmd search -max 1000 -vu $CASKET "$search" | gawk '/file:/ {print gensub("file://", "", "", $2)}' | perl -pe 's/\%([A-Fa-f0-9]{2})/pack('C', hex($1))/seg')
+        do
+            if [ -e $file ]; then
+                ln $file $SEARCHDIR/cur/
+            fi
+        done
+        echo "$(ls $SEARCHDIR/cur | wc -l) results"
+    else
+        estcmd search -vh $CASKET "$search"
+    fi
+fi
