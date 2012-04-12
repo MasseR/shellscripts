@@ -1,4 +1,8 @@
 #!/bin/bash
+# A helper script for antivir. Nothing fancy, writes logs to a certain place,
+# and scans only modified files. Aside from that it uses clamdscan and multiple
+# cores for speed. Logs are saved in
+# $PWD/.clamscan/logs/$year/$month/$day/clamav-$epoch.log.gz
 
 CLAMDIR=.clamscan
 TIMEFILE=$CLAMDIR/time

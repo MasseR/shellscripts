@@ -1,17 +1,19 @@
 #!/bin/bash
 # Frontend for hyperestraier full-text searcher and indexer.
+# For usage, see `search -h`
 
 # Configuration
 max_size="4M"
 casket_name=".estidx"
-
-
-# State variables
 datadir=$HOME/.local/share/search
 confdir=$HOME/.config/search
 dirs=$confdir/dirs
 casket=$datadir/index
 findroots=""
+
+
+# State variables
+all="no"
 index="no"
 purge="no"
 optimize="no"
@@ -37,9 +39,13 @@ while read line; do
     findroots="$findroots $line"
 done < $dirs
 
-while getopts "liod:pkrh" flags
+while getopts "alio:pkrh" flags
 do
     case $flags in
+        "a") # Index all
+            all="yes"
+            index="yes"
+            ;;
         "l") # List indexable directories
             echo "Indexing the following directories:"
             cat $dirs
@@ -67,7 +73,7 @@ do
             echo "Index and query a directory."
             echo -e '\t-l\t\tList indexable directories'
             echo -e '\t-i\t\tIndex'
-            echo -e '\t-d dir\t\tAct in directory [dir]'
+            echo -e '\t-a\t\tIndex all'
             echo -e '\t-p\t\tPurge database'
             echo -e '\t-k\t\tExtract keys'
             echo -e '\t-o\t\tOptimize index'
@@ -81,8 +87,10 @@ if [ $index == "yes" ]
 then
     echo "Indexing"
     findnew=""
-    if [ -d $casket ]; then
-        findnew="-newer $casket/_fwm"
+    if [ $all == "no" ]; then
+        if [ -d $casket ]; then
+            findnew="-newer $casket/_fwm"
+        fi
     fi
     find $findroots $findnew -type f -size "-$max_size" \
         | estcmd gather \
