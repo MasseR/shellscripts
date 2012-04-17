@@ -96,9 +96,11 @@ then
         | estcmd gather \
         -fx '.pdf' 'H@/usr/share/hyperestraier/filter/estfxpdftohtml' \
         -fx '.doc,.xls,.ppt' 'H@/usr/share/hyperestraier/filter/estfxmsotohtml' \
-        -fx '.odt' "H@$HOME/bin/hodt2txt.sh" \
-        -fx '.wiki,.tex,.lhs,.markdown' "H@$HOME/bin/txt22txt.sh" \
-        -cl -sd -cm -bc $casket -
+        -fx '.odt' "H@$HOME/filters/hodt2txt.sh" \
+        -fx '.wiki,.tex,.lhs,.markdown' "H@$HOME/filters/identity.sh" \
+        -fx '.gz' 'H@$HOME/filters/gzip2txt.sh' \
+        -fx '.odt' 'H@$HOME/filters/hodt2txt.sh' \
+        -cl -sd -cm $casket -
 fi
 
 # Purge if user has requested it
