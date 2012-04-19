@@ -19,6 +19,7 @@ purge="no"
 optimize="no"
 extract_keys="no"
 raw="no"
+search="yes"
 
 # If datadir does not exist, create it
 if [ ! -d $datadir ]; then
@@ -45,25 +46,32 @@ do
         "a") # Index all
             all="yes"
             index="yes"
+            search="no"
             ;;
         "l") # List indexable directories
             echo "Indexing the following directories:"
             cat $dirs
+            search="no"
             ;;
         "d") # Custom directory
             dir=$OPTARG
+            search="no"
             ;;
         "i") # Index
             index="yes"
+            search="no"
             ;;
         "p") # Purge removed
             purge="yes"
+            search="no"
             ;;
         "o") # Optimize
             optimize="yes"
+            search="no"
             ;;
         "k") # Extract keys
             extract_keys="yes"
+            search="no"
             ;;
         "r") # Raw query
             raw="yes"
@@ -79,6 +87,8 @@ do
             echo -e '\t-o\t\tOptimize index'
             echo -e '\t-r\t\tQuery with a raw string'
             echo -e '\t-h\t\tThis help text'
+            exit 0
+            ;;
     esac
 done
 
@@ -124,33 +134,36 @@ then
     estcmd extkeys $casket
 fi
 
-# Build the query string
-
-shift $((OPTIND - 1))
-
-query=""
-
-if [ $raw == "no" ]
+if [ $search == "yes" ]
 then
-    first="yes"
 
-    while [ "$1" != "" ]
-    do
-        if [ $first != "yes" ]
-        then
-            query="$query OR"
-        fi
-        first=false
-        str=$(echo "$1" | sed "s/\s\+/ AND /g")
-        query="$query $str"
-        shift
-    done
-else
-    query="$@"
-fi
+    # Build the query string
 
-if [ "$query" != "" ]
-then
-    echo "Searching for \"$query\""
-    estcmd search -vh $casket "$query"
+    shift $((OPTIND - 1))
+
+    query=""
+
+    if [ $raw == "no" ]
+    then
+        first="yes"
+
+        query=""
+        while [ "$1" != "" ]
+        do
+            query="$query $1"
+            shift
+        done
+    else
+        query="$@"
+    fi
+
+    original_query="$query"
+    anded_query=$(echo $original_query | sed "s/\s\+/ AND /g")
+    query="$query OR $anded_query"
+
+    if [ "$query" != "" ]
+    then
+        echo "Searching for \"$query\""
+        estcmd search -vh -hs $casket "$query" | less
+    fi
 fi
