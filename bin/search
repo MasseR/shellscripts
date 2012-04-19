@@ -105,6 +105,7 @@ then
     find $findroots $findnew -type f -size "-$max_size" \
         | estcmd gather \
         -fx '.pdf' 'H@/usr/share/hyperestraier/filter/estfxpdftohtml' \
+        -fx '.ps' 'T@$HOME/filters/ps2txt.sh' \
         -fx '.doc,.xls,.ppt' 'H@/usr/share/hyperestraier/filter/estfxmsotohtml' \
         -fx '.odt' "H@$HOME/filters/hodt2txt.sh" \
         -fx '.wiki,.tex,.lhs,.markdown' "H@$HOME/filters/identity.sh" \
