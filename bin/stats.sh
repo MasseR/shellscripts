@@ -76,26 +76,28 @@ get_bat()
 {
     local datafile=$datadir/bat.rrd
     local powerdir=/sys/class/power_supply
-    if [ ! -e $datafile ]; then
-        rrdtool create $datafile --step 60 \
-            DS:ac:GAUGE:120:0:U \
-            DS:energy_now:GAUGE:120:0:U \
-            DS:energy_speed:DERIVE:120:U:U \
-            DS:voltage_now:GAUGE:120:U:U \
-            DS:voltage_speed:DERIVE:120:U:U \
-            RRA:MAX:0.5:1:1500 \
-            RRA:AVERAGE:0.5:60:24
+    if [ -d $powerdir ]; then
+        if [ ! -e $datafile ]; then
+            rrdtool create $datafile --step 60 \
+                DS:ac:GAUGE:120:0:U \
+                DS:energy_now:GAUGE:120:0:U \
+                DS:energy_speed:DERIVE:120:U:U \
+                DS:voltage_now:GAUGE:120:U:U \
+                DS:voltage_speed:DERIVE:120:U:U \
+                RRA:MAX:0.5:1:1500 \
+                RRA:AVERAGE:0.5:60:24
+        fi
+        local ac=$(cat $powerdir/AC0/online)
+        local energy_now=$(cat $powerdir/BAT0/energy_now)
+        local voltage_now=$(cat $powerdir/BAT0/voltage_now)
+        local output=N:$ac:$energy_now:$energy_now:$voltage_now:$voltage_now
+
+        log "bat" $output
+
+        rrdtool update $datafile \
+            --template ac:energy_now:energy_speed:voltage_now:voltage_speed \
+            $output
     fi
-    local ac=$(cat $powerdir/AC0/online)
-    local energy_now=$(cat $powerdir/BAT0/energy_now)
-    local voltage_now=$(cat $powerdir/BAT0/voltage_now)
-    local output=N:$ac:$energy_now:$energy_now:$voltage_now:$voltage_now
-
-    log "bat" $output
-
-    rrdtool update $datafile \
-        --template ac:energy_now:energy_speed:voltage_now:voltage_speed \
-        $output
 }
 
 get_mem
