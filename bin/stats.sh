@@ -45,7 +45,7 @@ get_net()
 
     log "net" $output
     rrdtool update $datafile \
-        --template ppp0_bytes_in:ppp0_bytes_out:ppp0_packets_in:ppp0_packets_out:eth0_bytes_in:eth0_bytes_out:eth0_packets_in:eth0_packets_out:eth0_bytes_in:eth0_bytes_out:eth0_packets_in:eth0_packets_out:wlan0_bytes_in:wlan0_bytes_out:wlan0_packets_in:wlan0_packets_out \
+        --template ppp0_bytes_in:ppp0_bytes_out:ppp0_packets_in:ppp0_packets_out:eth0_bytes_in:eth0_bytes_out:eth0_packets_in:eth0_packets_out:eth1_bytes_in:eth1_bytes_out:eth1_packets_in:eth1_packets_out:wlan0_bytes_in:wlan0_bytes_out:wlan0_packets_in:wlan0_packets_out \
         "$output"
 }
 
