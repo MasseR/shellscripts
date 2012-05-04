@@ -76,7 +76,7 @@ get_bat()
 {
     local datafile=$datadir/bat.rrd
     local powerdir=/sys/class/power_supply
-    if [ -d $powerdir ]; then
+    if [ -d $powerdir/BAT0 ]; then
         if [ ! -e $datafile ]; then
             rrdtool create $datafile --step 60 \
                 DS:ac:GAUGE:120:0:U \
