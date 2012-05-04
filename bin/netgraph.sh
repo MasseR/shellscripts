@@ -11,7 +11,7 @@ datafile=$datadir/net.rrd
 
 graph()
 {
-    local imagefile=$1
+    local imagefile=$datadir/"net_${interface}_$1.png"
     local starttime=$2
     local incolor='#00FF00'
     local outcolor='#FF0000'
@@ -26,27 +26,22 @@ graph()
         GPRINT:bytes_out_kilo:MAX:"Max out\: %5.2lfkbps" \
         LINE1:bytes_in$incolor:"Bytes in" \
         LINE1:bytes_out$outcolor:"Bytes out"
+    echo "Wrote $imagefile"
 }
 
 graph_hourly()
 {
-    local imagefile=$datadir/net_hour.png
-    graph $imagefile "-3600"
-    echo "Wrote $imagefile"
+    graph "hour" "-3600"
 }
 
 graph_daily()
 {
-    local imagefile=$datadir/net_day.png
-    graph $imagefile "-86400"
-    echo "Wrote $imagefile"
+    graph "day" "-86400"
 }
 
 graph_weekly()
 {
-    local imagefile=$datadir/net_week.png
-    graph $imagefile "-604800"
-    echo "Wrote $imagefile"
+    graph "week" "-604800"
 }
 
 graph_hourly
