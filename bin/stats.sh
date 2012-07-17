@@ -15,6 +15,25 @@ log()
     echo "$date: Writing $fun $result" >> $logfile
 }
 
+get_todo()
+{
+    local datafile=$datadir/todo.rrd
+    if [ ! -e $datafile ]; then
+        rrdtool create $datafile --step 60 \
+            DS:pending:GAUGE:120:0:U \
+            DS:completed:GAUGE:120:0:U \
+            RRA:AVERAGE:0.5:1:1440 \
+            RRA:AVERAGE:0.5:60:168 \
+            RRA:AVERAGE:0.5:1440:30 \
+            RRA:AVERAGE:0.5:43200:12
+    fi
+    local output=$(ionice -c 2 -n 7 $HOME/bin/todo.sh report | sed 1d | sed 2d | awk '{print "N:" $2 ":" $3}')
+    log "todo" $output
+    rrdtool update $datafile \
+        --template pending:completed \
+        "$output"
+}
+
 get_net()
 {
     local datafile=$datadir/net.rrd
@@ -72,6 +91,28 @@ get_mem()
     rrdtool update $datafile --template used:buffers:cached "$output"
 }
 
+get_hd()
+{
+    local datafile=$datadir/hd.rrd
+
+    if [ ! -e $datafile ]; then
+        local dsdefinition=$(df | sed 1d | gawk 'BEGIN { def=""; }; {gsub("/", "_", $6); def = def "DS:" $6 "_avail" ":GAUGE:120:0:U " "DS:" $6 "_used" ":GAUGE:120:0:U "}; END {print substr(def, 0, length(def)-1)}')
+        rrdtool create $datafile --step 60 \
+            $dsdefinition \
+            RRA:AVERAGE:0.5:1:1440 \
+            RRA:AVERAGE:0.5:60:168 \
+            RRA:AVERAGE:0.5:1440:30 \
+            RRA:AVERAGE:0.5:43200:12
+    fi
+
+    local template=$(df | sed 1d | gawk 'BEGIN { template=""; }; {gsub("/", "_", $6); template = template $6 "_avail:" $6 "_used:"} END { print substr(template, 0, length(template)-1) }')
+    local output=$(df | sed 1d | gawk 'BEGIN { output="N:"; }; {output = output $4 ":" $3 ":"} END { print substr(output, 0, length(output)-3) }')
+
+    log "disk" $output
+
+    rrdtool update $datafile --template "$template" "$output"
+}
+
 get_bat()
 {
     local datafile=$datadir/bat.rrd
@@ -102,4 +143,6 @@ get_bat()
 
 get_mem
 get_bat
+get_todo
 get_net
+get_hd
