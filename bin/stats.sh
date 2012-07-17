@@ -143,6 +143,5 @@ get_bat()
 
 get_mem
 get_bat
-get_todo
 get_net
 get_hd
