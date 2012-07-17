@@ -96,7 +96,9 @@ get_hd()
     local datafile=$datadir/hd.rrd
 
     if [ ! -e $datafile ]; then
-        local dsdefinition=$(df | sed 1d | gawk 'BEGIN { def=""; }; {gsub("/", "_", $6); def = def "DS:" $6 "_avail" ":GAUGE:120:0:U " "DS:" $6 "_used" ":GAUGE:120:0:U "}; END {print substr(def, 0, length(def)-1)}')
+        echo "Creating datafile"
+        local dsdefinition=$(df -x rootfs -x tmpfs -x devtmpfs | sed 1d | gawk 'BEGIN { def=""; }; {gsub("[/.]", "_", $6); avail_name=substr($6 "_avail", length($6 "_avail") - 18); used_name=substr($6 "_used", length($6 "_used") - 18); def = def "DS:" avail_name ":GAUGE:120:0:U " "DS:" used_name ":GAUGE:120:0:U "}; END {print substr(def, 0, length(def)-1)}')
+        echo $dsdefinition
         rrdtool create $datafile --step 60 \
             $dsdefinition \
             RRA:AVERAGE:0.5:1:1440 \
@@ -105,8 +107,8 @@ get_hd()
             RRA:AVERAGE:0.5:43200:12
     fi
 
-    local template=$(df | sed 1d | gawk 'BEGIN { template=""; }; {gsub("/", "_", $6); template = template $6 "_avail:" $6 "_used:"} END { print substr(template, 0, length(template)-1) }')
-    local output=$(df | sed 1d | gawk 'BEGIN { output="N:"; }; {output = output $4 ":" $3 ":"} END { print substr(output, 0, length(output)-3) }')
+    local template=$(df -x rootfs -x tmpfs -x devtmpfs | sed 1d | gawk 'BEGIN { template=""; }; {gsub("[/.]", "_", $6); avail_name=substr($6 "_avail", length($6 "_avail") - 18); used_name=substr($6 "_used", length($6 "_used") - 18); template = template avail_name ":" used_name ":" } END { print substr(template, 0, length(template)-1) }')
+    local output=$(df -x rootfs -x tmpfs -x devtmpfs | sed 1d | gawk 'BEGIN { output="N:"; }; {output = output $4 ":" $3 ":"} END { print substr(output, 0, length(output)-3) }')
 
     log "disk" $output
 
