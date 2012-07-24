@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Author: Mats Rauhala
+#
+# A simple password manager. Uses gpg for encryption. For easier usage, set
+# default-key, session manager and default-recipient-self
+
+VERSION=0.1
+
+root=$HOME/passwords
+
+function handlePath {
+    local original=$root/$1
+    dir=$(dirname $original)
+    filename="$(basename $original).gpg"
+}
+
+function insertPassword
+{
+    local dir=$1
+    local filename=$2
+    local fullpath=$dir/$filename
+    local username=$3
+    local password=$4
+    local notes=$5
+    local tempfile=$(tempfile)
+
+    echo "Full path: $fullpath"
+    if [ -f $fullpath ]; then
+        # File already exists
+        rm $tempfile
+        echo "Decrypting old"
+        gpg --output $tempfile --decrypt $fullpath
+        rm $fullpath
+    fi
+    touch $tempfile
+
+    echo "Date: $(date)" >> $tempfile
+    echo "Username: $username" >> $tempfile
+    echo "Password: $password" >> $tempfile
+    echo "Notes: $notes" >> $tempfile
+    echo "" >> $tempfile
+
+    gpg --output $fullpath --encrypt $tempfile
+    rm $tempfile
+}
+
+while getopts "i:ls:rh" flags
+do
+    case $flags in
+        "i") # Insert new
+            handlePath $OPTARG
+            echo $dir
+            if [ ! -e $dir ]; then
+                mkdir -p $dir
+            fi
+            echo "Username:"
+            read username
+            echo ""
+            echo "Password:"
+            read -s password
+            echo ""
+            echo "Notes:"
+            read notes
+            insertPassword "$dir" "$filename" "$username" "$password" "$notes"
+            password=""
+            ;;
+        "l") # List all
+            find $root -type f -iname '*.gpg'
+            ;;
+        "s") # See username password
+            handlePath $OPTARG
+            if [ ! -e $dir/$filename ]
+            then
+                echo "No such file"
+                exit 1
+            fi
+            echo "Reading $dir/$filename"
+            gpg --decrypt $dir/$filename
+            ;;
+        "r") # Recommend a password
+            pwgen
+            ;;
+        "h") # Help
+            echo "passman $VERSION"
+            echo ""
+            echo -e "\t-h\t\tThis help"
+            echo -e "\t-i [path]\tInsert a new password"
+            echo -e "\t-l \t\tList passwords"
+            echo -e "\t-s [path]\tSee password"
+            echo -e "\t-r \t\tRecommend a new password"
+    esac
+done
