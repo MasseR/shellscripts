@@ -108,7 +108,7 @@ get_hd()
     fi
 
     local template=$(df -x rootfs -x tmpfs -x devtmpfs | sed 1d | gawk 'BEGIN { template=""; }; {gsub("[/.]", "_", $6); avail_name=substr($6 "_avail", length($6 "_avail") - 18); used_name=substr($6 "_used", length($6 "_used") - 18); template = template avail_name ":" used_name ":" } END { print substr(template, 0, length(template)-1) }')
-    local output=$(df -x rootfs -x tmpfs -x devtmpfs | sed 1d | gawk 'BEGIN { output="N:"; }; {output = output $4 ":" $3 ":"} END { print substr(output, 0, length(output)-3) }')
+    local output=$(df -x rootfs -x tmpfs -x devtmpfs | sed 1d | gawk 'BEGIN { output="N:"; }; {output = output $4 ":" $3 ":"} END { print substr(output, 0, length(output)-1) }')
 
     log "disk" $output
 
