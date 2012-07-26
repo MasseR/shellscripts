@@ -15,6 +15,26 @@ log()
     echo "$date: Writing $fun $result" >> $logfile
 }
 
+get_load()
+{
+    local datafile=$datadir/load.rrd
+    if [ ! -e $datafile ]; then
+        rrdtool create $datafile --step 60 \
+            DS:1min:GAUGE:100:0:U \
+            DS:5min:GAUGE:100:0:U \
+            DS:15min:GAUGE:100:0:U \
+            RRA:AVERAGE:0.5:1:1440 \
+            RRA:AVERAGE:0.5:60:168 \
+            RRA:AVERAGE:0.5:1440:30 \
+            RRA:AVERAGE:0.5:43200:12
+    fi
+    local output=$(awk '{print "N:" $1 ":" $2 ":" $3}' /proc/loadavg)
+    log "load" $output
+    rrdtool update $datafile \
+        --template 1min:5min:15min \
+        $output
+}
+
 get_todo()
 {
     local datafile=$datadir/todo.rrd
@@ -147,3 +167,4 @@ get_mem
 get_bat
 get_net
 get_hd
+get_load
