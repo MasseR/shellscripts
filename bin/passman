@@ -5,7 +5,14 @@
 # A simple password manager. Uses gpg for encryption. For easier usage, set
 # default-key, session manager and default-recipient-self
 
-VERSION=0.1
+VERSION=0.1.1
+
+# Check for dependencies
+which tree
+if [ $? -gt 0 ]; then
+    echo "tree command is missing. Try installing it"
+    exit 1
+fi
 
 root=$HOME/passwords
 
@@ -66,7 +73,7 @@ do
             password=""
             ;;
         "l") # List all
-            find $root -type f -iname '*.gpg'
+            tree -P "*.gpg" $root | less
             ;;
         "s") # See username password
             handlePath $OPTARG
