@@ -9,7 +9,7 @@
 # index file is newer than those files in the cur directories.
 
 MAILDIR=$HOME/Mail
-SEARCHDIR=$MAILDIR/Search
+SEARCHDIR=$HOME/Search
 CASKET=$HOME/Mail/casket
 
 search="no"
