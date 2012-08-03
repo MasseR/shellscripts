@@ -28,9 +28,9 @@ graph()
         "CDEF:buffersG=buffers,1000000,/" \
         "CDEF:cachedG=cached,1000000,/" \
         GPRINT:rused:LAST:"Cur\: %5.2lfG" \
-        LINE1:rused$usedcolor:"In use" \
-        LINE1:buffersG$buffercolor:"Buffers" \
-        LINE1:cachedG$cachecolor:"Cached"
+        AREA:cachedG$cachecolor:"Cached" \
+        AREA:rused$usedcolor:"In use" \
+        AREA:buffersG$buffercolor:"Buffers"
     echo "Wrote $image"
 }
 
