@@ -30,7 +30,7 @@ function insertPassword
     local username=$3
     local password=$4
     local notes=$5
-    local tempfile=$(tempfile)
+    local tempfile=$(mktemp)
 
     echo "Full path: $fullpath"
     if [ -f $fullpath ]; then
